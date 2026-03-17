@@ -61,7 +61,7 @@ values: {
 	storage: {
 		enabled: false
 		size:    "512Mi"
-		class:   "standard"
+		class:   "local-path"
 	}
 
 	secrets: {

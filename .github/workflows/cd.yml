@@ -34,40 +34,40 @@ jobs:
       - name: Sync, Generate, Commit & Push
         run: |
           set -e
-
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-
-          # Retry mechanism (handles race conditions)
+      
+          success=0
           for i in 1 2 3; do
             echo "Attempt $i..."
-
-            # 1. Sync with remote FIRST
+      
             git fetch origin main
             git checkout main
             git reset --hard origin/main
-
-            # 2. Ensure directory exists
+      
             mkdir -p deploy/manifests/prod
-
-            # 3. Update digest in values.cue
             sed -i "s|digest: \".*\"|digest: \"${IMAGE_DIGEST}\"|" modules/creative-studio/values.cue
-
-            # 4. Generate manifests using Timoni
+      
             timoni build creative-studio ./modules/creative-studio \
               --values modules/creative-studio/values.cue \
               > deploy/manifests/prod/all.yaml
-
-            # 5. Commit changes
+      
             git add .
             git commit -m "Update image to ${IMAGE_DIGEST}" || echo "No changes to commit"
-
-            # 6. Push changes
+      
             if git push origin main; then
               echo "Push successful ✅"
+              success=1
               break
             else
               echo "Push failed, retrying..."
               sleep 2
+            fi
+          done
+      
+          if [ "$success" -ne 1 ]; then
+            echo "Failed to push after 3 attempts"
+            exit 1
+          fi
             fi
           done

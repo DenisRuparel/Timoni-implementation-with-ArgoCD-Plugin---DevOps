@@ -31,10 +31,40 @@ jobs:
         run: |
           echo "IMAGE_DIGEST=${{ github.event.client_payload.image_digest }}" >> $GITHUB_ENV
 
+      - name: Sync repo (IMPORTANT)
+        run: |
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+
+      - name: Create manifest directory
+        run: |
+          mkdir -p deploy/manifests/prod
+
+      - name: Update values.cue
+        run: |
+          sed -i "s|digest: \".*\"|digest: \"${IMAGE_DIGEST}\"|" modules/creative-studio/values.cue
+
+      - name: Generate manifests
+        run: |
+          timoni build creative-studio ./modules/creative-studio \
+            --values modules/creative-studio/values.cue \
+            > deploy/manifests/prod/all.yaml
+
+      - name: Debug output (VERY IMPORTANT)
+        run: |
+          echo "---- FILES ----"
+          ls -R deploy || echo "deploy not found"
+          echo "---- CONTENT ----"
+          cat deploy/manifests/prod/all.yaml || echo "file missing"
+
       - name: Commit changes
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
           git add .
-          git commit -m "Update image to ${IMAGE_DIGEST}" || echo "No changes to commit"
-          git push
+
+          git diff --cached --quiet && echo "No changes to commit" || git commit -m "Update image to ${IMAGE_DIGEST}"
+
+          git push origin main

@@ -12,7 +12,7 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Ensure Timoni is installed
@@ -24,39 +24,50 @@ jobs:
             sudo mv timoni /usr/local/bin/
           else
             echo "Timoni already installed"
+            timoni version
           fi
 
-      - name: Create manifest directories
-        run: |
-          mkdir -p deploy/manifests/prod
-
-      - name: Set digest
+      - name: Set image digest
         run: |
           echo "IMAGE_DIGEST=${{ github.event.client_payload.image_digest }}" >> $GITHUB_ENV
 
-      - name: Update values.cue
+      - name: Sync, Generate, Commit & Push
         run: |
-          sed -i "s|digest: \".*\"|digest: \"${IMAGE_DIGEST}\"|" modules/creative-studio/values.cue
+          set -e
 
-      - name: Generate manifests
-        run: |
-          timoni build creative-studio ./modules/creative-studio \
-            --values modules/creative-studio/values.cue \
-            > deploy/manifests/prod/all.yaml
-
-      - name: Commit and push changes (final fix)
-        run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-      
-          # Always sync first
-          git fetch origin main
-          git checkout main
-          git reset --hard origin/main
-      
-          # Apply your changes
-          git add .
-          git commit -m "Update image to ${IMAGE_DIGEST}" || echo "No changes"
-      
-          # Push
-          git push origin main
+
+          # Retry mechanism (handles race conditions)
+          for i in 1 2 3; do
+            echo "Attempt $i..."
+
+            # 1. Sync with remote FIRST
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+
+            # 2. Ensure directory exists
+            mkdir -p deploy/manifests/prod
+
+            # 3. Update digest in values.cue
+            sed -i "s|digest: \".*\"|digest: \"${IMAGE_DIGEST}\"|" modules/creative-studio/values.cue
+
+            # 4. Generate manifests using Timoni
+            timoni build creative-studio ./modules/creative-studio \
+              --values modules/creative-studio/values.cue \
+              > deploy/manifests/prod/all.yaml
+
+            # 5. Commit changes
+            git add .
+            git commit -m "Update image to ${IMAGE_DIGEST}" || echo "No changes to commit"
+
+            # 6. Push changes
+            if git push origin main; then
+              echo "Push successful ✅"
+              break
+            else
+              echo "Push failed, retrying..."
+              sleep 2
+            fi
+          done

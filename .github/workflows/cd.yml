@@ -30,15 +30,13 @@ jobs:
       - name: Set image digest
         run: |
           echo "IMAGE_DIGEST=${{ github.event.client_payload.image_digest }}" >> $GITHUB_ENV
-
-      # ✅ Always sync FIRST
+          
       - name: Sync repository
         run: |
           git fetch origin main
           git checkout main
           git reset --hard origin/main
 
-      # ✅ Skip if digest already same (optimization)
       - name: Check if digest changed
         run: |
           CURRENT=$(grep digest modules/creative-studio/values.cue | awk '{print $2}' | tr -d '"')
@@ -52,12 +50,10 @@ jobs:
         run: |
           mkdir -p deploy/manifests/prod
 
-      # ✅ Robust update (fixes your main issue)
       - name: Update values.cue
         run: |
           sed -i "/digest:/c\        digest: \"${IMAGE_DIGEST}\"" modules/creative-studio/values.cue
 
-      # ✅ Verify update (VERY IMPORTANT)
       - name: Verify values.cue update
         run: |
           echo "----- UPDATED VALUES -----"
@@ -69,7 +65,6 @@ jobs:
             --values modules/creative-studio/values.cue \
             > deploy/manifests/prod/all.yaml
 
-      # ✅ Debug output
       - name: Debug manifest
         run: |
           echo "---- FILES ----"
@@ -77,13 +72,11 @@ jobs:
           echo "---- CONTENT ----"
           cat deploy/manifests/prod/all.yaml || echo "file missing"
 
-      # ✅ Verify digest actually used in manifest
       - name: Verify manifest image
         run: |
           echo "----- IMAGE IN MANIFEST -----"
           grep image deploy/manifests/prod/all.yaml || echo "No image found"
 
-      # ✅ Safe commit (no failure if no changes)
       - name: Commit and push changes
         run: |
           git config user.name "github-actions"

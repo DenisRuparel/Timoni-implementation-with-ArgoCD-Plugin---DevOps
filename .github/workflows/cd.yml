@@ -31,43 +31,10 @@ jobs:
         run: |
           echo "IMAGE_DIGEST=${{ github.event.client_payload.image_digest }}" >> $GITHUB_ENV
 
-      - name: Sync, Generate, Commit & Push
+      - name: Commit changes
         run: |
-          set -e
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-      
-          success=0
-          for i in 1 2 3; do
-            echo "Attempt $i..."
-      
-            git fetch origin main
-            git checkout main
-            git reset --hard origin/main
-      
-            mkdir -p deploy/manifests/prod
-            sed -i "s|digest: \".*\"|digest: \"${IMAGE_DIGEST}\"|" modules/creative-studio/values.cue
-      
-            timoni build creative-studio ./modules/creative-studio \
-              --values modules/creative-studio/values.cue \
-              > deploy/manifests/prod/all.yaml
-      
-            git add .
-            git commit -m "Update image to ${IMAGE_DIGEST}" || echo "No changes to commit"
-      
-            if git push origin main; then
-              echo "Push successful ✅"
-              success=1
-              break
-            else
-              echo "Push failed, retrying..."
-              sleep 2
-            fi
-          done
-      
-          if [ "$success" -ne 1 ]; then
-            echo "Failed to push after 3 attempts"
-            exit 1
-          fi
-            fi
-          done
+          git add .
+          git commit -m "Update image to ${IMAGE_TAG}"
+          git push

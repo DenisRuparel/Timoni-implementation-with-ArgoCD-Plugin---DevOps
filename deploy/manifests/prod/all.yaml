@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: creative-studio
+  name: creative-studio-prod
   namespace: creative-studio-prod
 spec:
   minReadySeconds: 5
   replicas: 2
   selector:
     matchLabels:
-      app: creative-studio
+      app: creative-studio-prod
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -17,14 +17,14 @@ spec:
   template:
     metadata:
       labels:
-        app: creative-studio
+        app: creative-studio-prod
     spec:
       containers:
       - envFrom:
         - secretRef:
             name: creative-studio-secrets
-        image: demo.goharbor.io/creative-studio/creative-studio@sha256:d9ec0d8b5bf884cfa104972a242c0fb62c43db5fbf410c8b3e3f2b5a7ab8e079
-        name: creative-studio
+        image: demo.goharbor.io/creative-studio/creative-studio@sha256:edd6f736eec4d76af23214bbb7faaa7aaf3c57f8893f3dca1a97aab31c234161
+        name: creative-studio-prod
         ports:
         - containerPort: 5000
         resources:
@@ -42,12 +42,12 @@ spec:
       volumes:
       - name: app-storage
         persistentVolumeClaim:
-          claimName: creative-studio-pvc
+          claimName: creative-studio-prod-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: creative-studio-service
+  name: creative-studio-prod-service
   namespace: creative-studio-prod
 spec:
   ports:
@@ -56,7 +56,7 @@ spec:
     protocol: TCP
     targetPort: 3000
   selector:
-    app: creative-studio
+    app: creative-studio-prod
   type: NodePort
 ---
 apiVersion: networking.k8s.io/v1
@@ -82,7 +82,7 @@ spec:
         cidr: 0.0.0.0/0
   podSelector:
     matchLabels:
-      app: creative-studio
+      app: creative-studio-prod
   policyTypes:
   - Egress
 ---
@@ -101,14 +101,14 @@ spec:
       protocol: TCP
   podSelector:
     matchLabels:
-      app: creative-studio
+      app: creative-studio-prod
   policyTypes:
   - Ingress
 ---
 apiVersion: v1
 kind: ResourceQuota
 metadata:
-  name: creative-studio-quota
+  name: creative-studio-prod-quota
   namespace: creative-studio-prod
 spec:
   hard:
@@ -121,7 +121,7 @@ spec:
 apiVersion: v1
 kind: LimitRange
 metadata:
-  name: creative-studio-limits
+  name: creative-studio-prod-limits
   namespace: creative-studio-prod
 spec:
   limits:
@@ -136,7 +136,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: creative-studio-pvc
+  name: creative-studio-prod-pvc
   namespace: creative-studio-prod
 spec:
   accessModes:

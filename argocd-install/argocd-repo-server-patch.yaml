@@ -10,9 +10,14 @@ spec:
         - name: timoni-cmp-config
           configMap:
             name: timoni-cmp-config
+
         - name: var-files
           emptyDir: {}
+
         - name: plugins
+          emptyDir: {}
+
+        - name: custom-tools
           emptyDir: {}
 
       initContainers:
@@ -35,12 +40,14 @@ spec:
           volumeMounts:
             - name: var-files
               mountPath: /var/run/argocd
+
             - name: plugins
               mountPath: /home/argocd/cmp-server/plugins
+
             - name: timoni-cmp-config
               mountPath: /home/argocd/cmp-server/config/plugin.yaml
               subPath: plugin.yaml
 
-      volumes:
-        - name: custom-tools
-          emptyDir: {}
+            - name: custom-tools
+              mountPath: /usr/local/bin/timoni
+              subPath: timoni

@@ -10,16 +10,12 @@ spec:
         - name: timoni-cmp-config
           configMap:
             name: timoni-cmp-config
-
         - name: var-files
           emptyDir: {}
-
         - name: plugins
           emptyDir: {}
-
         - name: custom-tools
           emptyDir: {}
-
       initContainers:
         - name: download-timoni
           image: demo.goharbor.io/creative-studio/timoni-cmp:latest
@@ -29,9 +25,17 @@ spec:
           volumeMounts:
             - name: custom-tools
               mountPath: /custom-tools
-
       containers:
-        - name: timoni-cmp
+        - name: argocd-repo-server        # ← MUST include this
+          volumeMounts:
+            - name: var-files
+              mountPath: /var/run/argocd
+            - name: plugins
+              mountPath: /home/argocd/cmp-server/plugins
+            - name: custom-tools
+              mountPath: /usr/local/bin/timoni
+              subPath: timoni
+        - name: timoni-cmp                # ← sidecar added alongside
           image: demo.goharbor.io/creative-studio/timoni-cmp:latest
           command: [/var/run/argocd/argocd-cmp-server]
           securityContext:
@@ -40,14 +44,11 @@ spec:
           volumeMounts:
             - name: var-files
               mountPath: /var/run/argocd
-
             - name: plugins
               mountPath: /home/argocd/cmp-server/plugins
-
             - name: timoni-cmp-config
               mountPath: /home/argocd/cmp-server/config/plugin.yaml
               subPath: plugin.yaml
-
             - name: custom-tools
               mountPath: /usr/local/bin/timoni
               subPath: timoni

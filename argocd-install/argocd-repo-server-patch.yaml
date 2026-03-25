@@ -6,6 +6,8 @@ metadata:
 spec:
   template:
     spec:
+      imagePullSecrets:
+        - name: harbor-secret 
       volumes:
         - name: timoni-cmp-config
           configMap:

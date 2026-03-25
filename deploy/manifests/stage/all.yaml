@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: creative-studio-stage
+  namespace: creative-studio-stage
+spec:
+  minReadySeconds: 3
+  replicas: 2
+  selector:
+    matchLabels:
+      app: creative-studio-stage
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: creative-studio-stage
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: creative-studio-secrets
+        image: demo.goharbor.io/creative-studio/creative-studio@sha256:afac0bc1dafb9ff18378201703fc0e01951096da51c8ae83f4d4975794d581ca
+        name: creative-studio-stage
+        ports:
+        - containerPort: 5000
+        resources:
+          limits:
+            cpu: 300m
+            memory: 384Mi
+          requests:
+            cpu: 150m
+            memory: 192Mi
+        volumeMounts:
+        - mountPath: /app/data
+          name: app-storage
+      imagePullSecrets:
+      - name: harbor-secret
+      volumes:
+      - name: app-storage
+        persistentVolumeClaim:
+          claimName: creative-studio-stage-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: creative-studio-stage-service
+  namespace: creative-studio-stage
+spec:
+  ports:
+  - name: http
+    port: 5000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: creative-studio-stage
+  type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+  namespace: creative-studio-stage
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress
+  namespace: creative-studio-stage
+spec:
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+  podSelector:
+    matchLabels:
+      app: creative-studio-stage
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-creative-studio-ingress
+  namespace: creative-studio-stage
+spec:
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - port: 3000
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app: creative-studio-stage
+  policyTypes:
+  - Ingress
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: creative-studio-stage-quota
+  namespace: creative-studio-stage
+spec:
+  hard:
+    limits.cpu: 1200m
+    limits.memory: 1.5Gi
+    pods: "7"
+    requests.cpu: 600m
+    requests.memory: 768Mi
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: creative-studio-stage-limits
+  namespace: creative-studio-stage
+spec:
+  limits:
+  - default:
+      cpu: 300m
+      memory: 384Mi
+    defaultRequest:
+      cpu: 150m
+      memory: 192Mi
+    type: Container
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: creative-studio-stage-pvc
+  namespace: creative-studio-stage
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 768Mi
+  storageClassName: local-path
+---

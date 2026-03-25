@@ -31,18 +31,6 @@ spec:
               mountPath: /custom-tools
 
       containers:
-        - name: argocd-repo-server
-          volumeMounts:
-            - name: var-files
-              mountPath: /var/run/argocd
-
-            - name: plugins
-              mountPath: /home/argocd/cmp-server/plugins
-
-            - name: custom-tools
-              mountPath: /usr/local/bin/timoni
-              subPath: timoni
-
         - name: timoni-cmp
           image: demo.goharbor.io/creative-studio/timoni-cmp:latest
           command: [/var/run/argocd/argocd-cmp-server]

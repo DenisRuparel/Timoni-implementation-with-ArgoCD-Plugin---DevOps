@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: cd-${{ github.event.client_payload.image_digest }}
+  cancel-in-progress: false
+
 jobs:
   # ─────────────────────────────────────────
   # BETA — auto deploys, no approval needed

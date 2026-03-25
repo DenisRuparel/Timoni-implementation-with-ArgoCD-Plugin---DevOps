@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+spec:
+  template:
+    spec:
+      volumes:
+        - name: timoni-cmp-config
+          configMap:
+            name: timoni-cmp-config
+        - name: var-files
+          emptyDir: {}
+        - name: plugins
+          emptyDir: {}
+
+      initContainers:
+        - name: download-timoni
+          image: demo.goharbor.io/creative-studio/timoni-cmp:latest
+          command: [sh, -c]
+          args:
+            - cp /usr/local/bin/timoni /custom-tools/timoni
+          volumeMounts:
+            - name: custom-tools
+              mountPath: /custom-tools
+
+      containers:
+        - name: timoni-cmp
+          image: demo.goharbor.io/creative-studio/timoni-cmp:latest
+          command: [/var/run/argocd/argocd-cmp-server]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+          volumeMounts:
+            - name: var-files
+              mountPath: /var/run/argocd
+            - name: plugins
+              mountPath: /home/argocd/cmp-server/plugins
+            - name: timoni-cmp-config
+              mountPath: /home/argocd/cmp-server/config/plugin.yaml
+              subPath: plugin.yaml
+
+      volumes:
+        - name: custom-tools
+          emptyDir: {}

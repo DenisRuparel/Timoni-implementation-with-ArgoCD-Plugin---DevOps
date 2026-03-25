@@ -168,6 +168,3 @@ jobs:
           git add modules/creative-studio/values.cue
           git commit -m "chore(prod): promote image ${IMAGE_DIGEST}"
           git push origin main
-beta  → environments/beta/values.cue
-stage → environments/stage/values.cue
-prod  → modules/creative-studio/values.cue   ← different!

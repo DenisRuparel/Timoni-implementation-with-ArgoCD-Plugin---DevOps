@@ -3,8 +3,8 @@ package main
 
 values: {
 	metadata: {
-		name:      "creative-studio-prod"
-		namespace: "creative-studio-prod"
+		name:      *"creative-studio-prod" | string
+		namespace: *"creative-studio-prod" | string
 	}
 	app: "creative-studio"
 	image: {

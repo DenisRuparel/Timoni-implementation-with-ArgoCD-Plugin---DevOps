@@ -27,6 +27,7 @@ spec:
               mountPath: /custom-tools
       containers:
         - name: argocd-repo-server        # ← MUST include this
+          image: quay.io/argoproj/argocd:v2.11.0
           volumeMounts:
             - name: var-files
               mountPath: /var/run/argocd

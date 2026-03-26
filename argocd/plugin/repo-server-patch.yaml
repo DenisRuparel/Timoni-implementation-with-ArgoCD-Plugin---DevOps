@@ -31,7 +31,7 @@ spec:
 
         # ✅ ADD SIDECAR (NO RISK)
         - name: timoni-plugin
-          image: demo.goharbor.io/creative-studio/timoni-cmp:latest
+          image: demo.goharbor.io/creative-studio/timoni-cmp@sha256:ccbd6eececfdf3c615c68d4a189fc152c16eba9f3b2d786357ac36d1677eecd5
           imagePullPolicy: Always
 
           command: ["/bin/sh", "-c"]

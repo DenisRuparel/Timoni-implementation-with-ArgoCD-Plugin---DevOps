@@ -12,7 +12,7 @@ spec:
     targetRevision: main
     path: environments/stage
     plugin:
-      name: timoni
+      name: timoni-v1.0
   destination:
     server: https://192.168.56.107:6443
     namespace: creative-studio-stage

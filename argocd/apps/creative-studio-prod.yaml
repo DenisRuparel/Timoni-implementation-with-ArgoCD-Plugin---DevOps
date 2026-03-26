@@ -11,6 +11,8 @@ spec:
     repoURL: https://github.com/DenisRuparel/Timoni-implementation-with-ArgoCD-Plugin---DevOps.git
     targetRevision: main
     path: modules/creative-studio
+    plugin:
+      name: timoni-v1.0
   destination:
     server: https://192.168.56.107:6443
     namespace: creative-studio-prod

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+spec:
+  template:
+    spec:
+      # ✅ SAFE: append imagePullSecrets (won’t remove existing ones)
+      imagePullSecrets:
+        - name: harbor-secret
+
+      volumes:
+        # 🔹 Plugin Config
+        - name: cmp-plugin
+          configMap:
+            name: timoni-plugin
+
+        # 🔹 Shared temp dir
+        - name: cmp-tmp
+          emptyDir: {}
+
+      containers:
+        # ✅ MODIFY EXISTING CONTAINER (SAFE: only adding volumeMounts)
+        - name: argocd-repo-server
+          volumeMounts:
+            - name: cmp-plugin
+              mountPath: /home/argocd/cmp-server/config
+            - name: cmp-tmp
+              mountPath: /tmp
+
+        # ✅ ADD SIDECAR (NO RISK)
+        - name: timoni-plugin
+          image: demo.goharbor.io/creative-studio/timoni-cmp:latest
+          imagePullPolicy: Always
+
+          command: ["/bin/sh", "-c"]
+          args: ["sleep infinity"]
+
+          # 🔐 (Optional but recommended for stability)
+          securityContext:
+            runAsUser: 999
+
+          volumeMounts:
+            - name: cmp-tmp
+              mountPath: /tmp

@@ -19,15 +19,15 @@ data:
         args:
           - |
             set -e
-
             ENV=$(echo "${ARGOCD_APP_NAME}" | awk -F'-' '{print $NF}')
-
-            REPO_ROOT="${ARGOCD_ENV_REPO_ROOT}"
+            REPO_ROOT=$(pwd | sed 's|/environments/.*||;s|/modules/.*||')
             MODULE_PATH="${REPO_ROOT}/modules/creative-studio"
 
             echo "App:       ${ARGOCD_APP_NAME}"
             echo "Namespace: ${ARGOCD_APP_NAMESPACE}"
             echo "Env:       ${ENV}"
+            echo "PWD:       $(pwd)"
+            echo "RepoRoot:  ${REPO_ROOT}"
 
             if [ "${ENV}" = "prod" ]; then
               echo "Prod — using modules/creative-studio/values.cue"
@@ -35,21 +35,18 @@ data:
                 "${MODULE_PATH}" \
                 --values "${MODULE_PATH}/values.cue" \
                 --namespace "${ARGOCD_APP_NAMESPACE}"
-
             elif [ "${ENV}" = "beta" ]; then
               echo "Beta — using environments/beta/values.cue"
               timoni build creative-studio \
                 "${MODULE_PATH}" \
                 --values "${REPO_ROOT}/environments/beta/values.cue" \
                 --namespace "${ARGOCD_APP_NAMESPACE}"
-
             elif [ "${ENV}" = "stage" ]; then
               echo "Stage — using environments/stage/values.cue"
               timoni build creative-studio \
                 "${MODULE_PATH}" \
                 --values "${REPO_ROOT}/environments/stage/values.cue" \
                 --namespace "${ARGOCD_APP_NAMESPACE}"
-
             else
               echo "Unknown environment: ${ENV}"
               exit 1

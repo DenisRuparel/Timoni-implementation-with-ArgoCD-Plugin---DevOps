@@ -31,19 +31,19 @@ data:
 
             if [ "${ENV}" = "prod" ]; then
               echo "Prod — using modules/creative-studio/values.cue"
-              timoni build creative-studio \
+              timoni build "${ARGOCD_APP_NAME}" \
                 "${MODULE_PATH}" \
                 --values "${MODULE_PATH}/values.cue" \
                 --namespace "${ARGOCD_APP_NAMESPACE}"
             elif [ "${ENV}" = "beta" ]; then
               echo "Beta — using environments/beta/values.cue"
-              timoni build creative-studio \
+              timoni build "${ARGOCD_APP_NAME}" \
                 "${MODULE_PATH}" \
                 --values "${REPO_ROOT}/environments/beta/values.cue" \
                 --namespace "${ARGOCD_APP_NAMESPACE}"
             elif [ "${ENV}" = "stage" ]; then
               echo "Stage — using environments/stage/values.cue"
-              timoni build creative-studio \
+              timoni build "${ARGOCD_APP_NAME}" \
                 "${MODULE_PATH}" \
                 --values "${REPO_ROOT}/environments/stage/values.cue" \
                 --namespace "${ARGOCD_APP_NAMESPACE}"

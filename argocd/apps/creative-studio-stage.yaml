@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/DenisRuparel/Timoni-implementation---DevOps
+    repoURL: https://github.com/DenisRuparel/Timoni-implementation-with-ArgoCD-Plugin---DevOps.git
     targetRevision: main
-    path: deploy/manifests/stage
+    path: environments/stage
   destination:
     server: https://192.168.56.107:6443
     namespace: creative-studio-stage

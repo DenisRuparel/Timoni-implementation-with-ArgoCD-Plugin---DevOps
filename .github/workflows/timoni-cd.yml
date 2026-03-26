@@ -82,7 +82,7 @@ jobs:
   deploy-prod:
     runs-on: self-hosted
     needs: deploy-stage
-    environment: production
+    environment: prod
 
     steps:
       - uses: actions/checkout@v4

@@ -1,3 +1,4 @@
+# argocd/parent-app.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -17,9 +18,20 @@ spec:
   destination:
     server: https://192.168.56.107:6443
     namespace: argocd
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: argocd-repo-server
+      namespace: argocd
+      jsonPointers:
+        - /spec/template/spec/containers
+        - /spec/template/spec/initContainers
+        - /spec/template/spec/volumes
+        - /spec/template/spec/imagePullSecrets
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true             # ✅ critical

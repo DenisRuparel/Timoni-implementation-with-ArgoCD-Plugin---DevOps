@@ -15,7 +15,7 @@ jobs:
   # ─────────────────────────────────────────
   # BETA — auto deploys, no approval needed
   # ─────────────────────────────────────────
-  deploy-beta:
+  deployment-beta:
     runs-on: self-hosted
     environment: beta
 
@@ -79,9 +79,9 @@ jobs:
   # ─────────────────────────────────────────
   # STAGE — waits for beta + manual approval
   # ─────────────────────────────────────────
-  deploy-stage:
+  deployment-stage:
     runs-on: self-hosted
-    needs: deploy-beta
+    needs: deployment-beta
     environment: stage
 
     steps:
@@ -143,9 +143,9 @@ jobs:
   # ─────────────────────────────────────────
   # PROD — waits for stage + manual approval
   # ─────────────────────────────────────────
-  deploy-prod:
+  deployment-prod:
     runs-on: self-hosted
-    needs: deploy-stage
+    needs: deployment-stage
     environment: prod
 
     steps:

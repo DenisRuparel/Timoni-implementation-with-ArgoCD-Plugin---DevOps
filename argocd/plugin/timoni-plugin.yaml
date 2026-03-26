@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: timoni-plugin
+  namespace: argocd
+data:
+  configManagementPlugins: |
+    - name: timoni
+      generate:
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "Running Timoni for environment: $ARGOCD_ENV"
+
+            APP_NAME="creative-studio-$ARGOCD_ENV"
+            NAMESPACE="creative-studio-$ARGOCD_ENV"
+
+            if [ "$ARGOCD_ENV" = "prod" ]; then
+              VALUES_FILE="modules/creative-studio/values.cue"
+            else
+              VALUES_FILE="environments/$ARGOCD_ENV/values.cue"
+            fi
+
+            timoni -n $NAMESPACE build $APP_NAME modules/creative-studio \
+              --values $VALUES_FILE

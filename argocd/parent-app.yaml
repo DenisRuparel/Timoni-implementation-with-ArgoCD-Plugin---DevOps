@@ -3,18 +3,19 @@ kind: Application
 metadata:
   name: creative-studio-parent
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
 spec:
-  project: default
+  project: creative-studio
+
   source:
-    repoURL: https://github.com/DenisRuparel/Timoni-implementation---DevOps
+    repoURL: https://github.com/DenisRuparel/Timoni-implementation-with-ArgoCD-Plugin---DevOps
     targetRevision: main
     path: argocd/apps
+
   destination:
     server: https://192.168.56.107:6443
     namespace: argocd
+
   syncPolicy:
     automated:
-      prune: true   
+      prune: true
       selfHeal: true

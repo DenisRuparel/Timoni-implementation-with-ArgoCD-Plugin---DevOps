@@ -6,49 +6,65 @@ metadata:
 spec:
   template:
     spec:
-      # ✅ SAFE: append imagePullSecrets (won’t remove existing ones)
       imagePullSecrets:
         - name: harbor-secret
 
       volumes:
-        # 🔹 Plugin Config
-        - name: cmp-plugin
+        # 🔹 CMP Plugin Config
+        - name: timoni-cmp-config
           configMap:
             name: timoni-cmp-config
 
-        # 🔹 Shared temp dir
+        # 🔹 Shared dirs (IMPORTANT: match ArgoCD defaults)
         - name: cmp-tmp
           emptyDir: {}
 
-      containers:
-        # ✅ MODIFY EXISTING CONTAINER (SAFE: only adding volumeMounts)
-        - name: argocd-repo-server
+        - name: custom-tools
+          emptyDir: {}
+
+      initContainers:
+        # 🔹 Install timoni binary
+        - name: download-timoni
+          image: demo.goharbor.io/creative-studio/timoni-cmp:latest
+          command: ["sh", "-c"]
+          args:
+            - cp /usr/local/bin/timoni /custom-tools/timoni && chmod +x /custom-tools/timoni
           volumeMounts:
-            - name: cmp-plugin
-              mountPath: /home/argocd/cmp-server/config
+            - name: custom-tools
+              mountPath: /custom-tools
+
+      containers:
+        # ✅ EXISTING repo-server (IMPORTANT: include image)
+        - name: repo-server
+          image: quay.io/argoproj/argocd:v3.3.4
+          volumeMounts:
+            - name: timoni-cmp-config
+              mountPath: /home/argocd/cmp-server/config/plugin.yaml
+              subPath: plugin.yaml
+
             - name: cmp-tmp
               mountPath: /tmp
 
-        # ✅ ADD SIDECAR (NO RISK)
-        - name: timoni-cmp-config
-          image: demo.goharbor.io/creative-studio/timoni-cmp@sha256:ccbd6eececfdf3c615c68d4a189fc152c16eba9f3b2d786357ac36d1677eecd5
-          imagePullPolicy: Always
+            - name: custom-tools
+              mountPath: /usr/local/bin/timoni
+              subPath: timoni
 
-          command: ["/bin/sh", "-c"]
-          args: ["sleep infinity"]
+        # ✅ CMP SIDECAR (CORRECT)
+        - name: timoni-cmp
+          image: demo.goharbor.io/creative-studio/timoni-cmp:latest
+          command: ["/var/run/argocd/argocd-cmp-server"]
 
-          # 🔐 (Optional but recommended for stability)
           securityContext:
             runAsUser: 999
 
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
-
           volumeMounts:
+            - name: timoni-cmp-config
+              mountPath: /home/argocd/cmp-server/config/plugin.yaml
+              subPath: plugin.yaml
+
             - name: cmp-tmp
               mountPath: /tmp
+
+            - name: custom-tools
+              mountPath: /usr/local/bin/timoni
+              subPath: timoni

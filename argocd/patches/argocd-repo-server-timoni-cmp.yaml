@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: argo-cmp-timoni
+          image: demo.goharbor.io/creative-studio/timoni-cmp:latest
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+          volumeMounts:
+            - mountPath: /var/run/argocd
+              name: var-files
+            - mountPath: /home/argocd/cmp-server/plugins
+              name: plugins
+            - mountPath: /tmp
+              name: cmp-tmp
+      volumes:
+        - name: cmp-tmp
+          emptyDir: {}

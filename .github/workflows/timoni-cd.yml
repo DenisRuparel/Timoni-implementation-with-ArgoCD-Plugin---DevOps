@@ -8,9 +8,44 @@ permissions:
   contents: write
 
 jobs:
+  patch-argocd-repo-server:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubectl (if missing)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v kubectl >/dev/null 2>&1; then
+            kubectl version --client=true
+            exit 0
+          fi
+          curl -fsSL -o kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
+          kubectl version --client=true
+
+      - name: Configure kubeconfig
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          kubectl get ns argocd >/dev/null
+
+      - name: Patch repo-server to include Timoni CMP sidecar
+        shell: bash
+        run: |
+          set -euo pipefail
+          kubectl patch deployment argocd-repo-server -n argocd \
+            --patch-file argocd/patches/argocd-repo-server-timoni-cmp.yaml
+
   deploy-beta:
     runs-on: self-hosted
     environment: beta
+    needs: patch-argocd-repo-server
 
     steps:
       - uses: actions/checkout@v4
@@ -24,8 +59,12 @@ jobs:
 
       - id: check
         run: |
-          CURRENT=$(grep image environments/beta/values.cue | awk '{print $2}' | tr -d '"')
-          if [ "$CURRENT" = "$IMAGE_DIGEST" ]; then
+          FILE="environments/beta/values.cue"
+          CURRENT_IMAGE="$(awk '/^[[:space:]]*image:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
+          CURRENT_DIGEST="$(awk '/^[[:space:]]*digest:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
+          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+
+          if [ "$CURRENT_IMAGE" = "$IMAGE_DIGEST" ] && [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "skip=false" >> $GITHUB_OUTPUT
@@ -33,7 +72,9 @@ jobs:
 
       - if: steps.check.outputs.skip == 'false'
         run: |
+          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
           sed -i 's|image:.*|image: "'"${IMAGE_DIGEST}"'"|' environments/beta/values.cue
+          sed -i 's|digest:.*|digest: "'"${TARGET_DIGEST}"'"|' environments/beta/values.cue
 
       - if: steps.check.outputs.skip == 'false'
         run: |
@@ -60,8 +101,12 @@ jobs:
 
       - id: check
         run: |
-          CURRENT=$(grep image environments/stage/values.cue | awk '{print $2}' | tr -d '"')
-          if [ "$CURRENT" = "$IMAGE_DIGEST" ]; then
+          FILE="environments/stage/values.cue"
+          CURRENT_IMAGE="$(awk '/^[[:space:]]*image:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
+          CURRENT_DIGEST="$(awk '/^[[:space:]]*digest:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
+          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+
+          if [ "$CURRENT_IMAGE" = "$IMAGE_DIGEST" ] && [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "skip=false" >> $GITHUB_OUTPUT
@@ -69,7 +114,9 @@ jobs:
 
       - if: steps.check.outputs.skip == 'false'
         run: |
+          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
           sed -i 's|image:.*|image: "'"${IMAGE_DIGEST}"'"|' environments/stage/values.cue
+          sed -i 's|digest:.*|digest: "'"${TARGET_DIGEST}"'"|' environments/stage/values.cue
 
       - if: steps.check.outputs.skip == 'false'
         run: |
@@ -96,8 +143,12 @@ jobs:
 
       - id: check
         run: |
-          CURRENT=$(grep image modules/creative-studio/values.cue | awk '{print $2}' | tr -d '"')
-          if [ "$CURRENT" = "$IMAGE_DIGEST" ]; then
+          FILE="modules/creative-studio/values.cue"
+          CURRENT_IMAGE="$(awk '/^[[:space:]]*image:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
+          CURRENT_DIGEST="$(awk '/^[[:space:]]*digest:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
+          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+
+          if [ "$CURRENT_IMAGE" = "$IMAGE_DIGEST" ] && [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "skip=false" >> $GITHUB_OUTPUT
@@ -105,7 +156,9 @@ jobs:
 
       - if: steps.check.outputs.skip == 'false'
         run: |
+          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
           sed -i 's|image:.*|image: "'"${IMAGE_DIGEST}"'"|' modules/creative-studio/values.cue
+          sed -i 's|digest:.*|digest: "'"${TARGET_DIGEST}"'"|' modules/creative-studio/values.cue
 
       - if: steps.check.outputs.skip == 'false'
         run: |

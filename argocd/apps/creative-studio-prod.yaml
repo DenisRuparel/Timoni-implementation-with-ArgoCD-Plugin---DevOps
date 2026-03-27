@@ -12,7 +12,7 @@ spec:
     path: .
 
     plugin:
-      name: timoni
+      name: argo-cmp-timoni
       env:
         - name: ARGOCD_ENV
           value: prod

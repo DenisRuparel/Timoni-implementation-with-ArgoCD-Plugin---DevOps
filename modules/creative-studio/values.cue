@@ -7,7 +7,7 @@ values: {
 		namespace: *"creative-studio-prod" | string
 	}
 	app: "creative-studio"
-	image: "demo.goharbor.io/creative-studio/creative-studio@sha256:80bf67e41ba299de0e53116a3c7308de5b67b2f3d4b5c5c3eb03a2bab1296c7c"
+	image: "demo.goharbor.io/creative-studio/creative-studio@sha256:8e73668883b383139f9e8a795a41bc8de0b6c13db6d41d600b18f2020b83a6b3"
 		repository: "demo.goharbor.io/creative-studio/creative-studio"
         digest: "sha256:e7de90053760442061ec57f18f906b0e7b2a1cc2aac3e9d7a85ca299382eed92"
 	}

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: timoni-plugin
+  name: timoni-cmp-config
   namespace: argocd
 data:
   configManagementPlugins: |

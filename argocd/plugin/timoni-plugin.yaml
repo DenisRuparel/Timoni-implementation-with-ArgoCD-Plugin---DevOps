@@ -4,8 +4,13 @@ metadata:
   name: timoni-cmp-config
   namespace: argocd
 data:
-  configManagementPlugins: |
-    - name: timoni
+  plugin.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: timoni
+    spec:
+      version: v1.0
       generate:
         command: ["/bin/sh", "-c"]
         args:

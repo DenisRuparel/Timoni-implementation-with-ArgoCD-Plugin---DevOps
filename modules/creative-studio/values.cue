@@ -7,9 +7,9 @@ values: {
 		namespace: *"creative-studio-prod" | string
 	}
 	app: "creative-studio"
-	image: "35.200.235.204/creative-studio/creative-studio@sha256:5fa8e2cab0623c59102599a0f021d58857bfe83a78cfc52086e703e7a27be2ac"
+	image: "35.200.235.204/creative-studio/creative-studio@sha256:4b54c8df1a53eee37efd7e655f38642322d0527064e8ebc00fe12b321e3521f5"
 		repository: "35.200.235.204/creative-studio/creative-studio"
-        digest: "sha256:5fa8e2cab0623c59102599a0f021d58857bfe83a78cfc52086e703e7a27be2ac"
+        digest: "sha256:4b54c8df1a53eee37efd7e655f38642322d0527064e8ebc00fe12b321e3521f5"
 	}
 	replicas: 3
 	service: {

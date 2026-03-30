@@ -10,7 +10,7 @@ spec:
         - name: harbor-secret
       containers:
         - name: argo-cmp-timoni
-          image: 43.204.35.30/creative-studio/timoni-cmp:latest
+          image: 43.204.35.30/creative-studio/timoni-cmp@sha256:922b3b64b9c0942a953950d3d3be36ab414b79395f5f3fbea70f2e827a7008bf
           imagePullPolicy: Always
           securityContext:
             runAsNonRoot: true

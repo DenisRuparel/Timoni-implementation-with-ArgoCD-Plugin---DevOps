@@ -7,9 +7,9 @@ values: {
 		namespace: "creative-studio-stage"
 	}
 	app: "creative-studio"
-	image: "43.204.35.30/creative-studio/creative-studio@sha256:499b75ad02a17ff10c9ce5d17f34b73ec547687d0ac6438c69090a842dbfe997"
+	image: "43.204.35.30/creative-studio/creative-studio@sha256:5fa8e2cab0623c59102599a0f021d58857bfe83a78cfc52086e703e7a27be2ac"
 		repository: "43.204.35.30/creative-studio/creative-studio"
-        digest: "sha256:499b75ad02a17ff10c9ce5d17f34b73ec547687d0ac6438c69090a842dbfe997"
+        digest: "sha256:5fa8e2cab0623c59102599a0f021d58857bfe83a78cfc52086e703e7a27be2ac"
 	}
 	replicas: 2
 	service: {

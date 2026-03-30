@@ -7,7 +7,7 @@ values: {
 		namespace: "creative-studio-beta"
 	}
 	app: "creative-studio"
-	image: "43.204.35.30/creative-studio/creative-studio@sha256:5fa8e2cab0623c59102599a0f021d58857bfe83a78cfc52086e703e7a27be2ac"
+	image: "35.200.235.204/creative-studio/creative-studio@sha256:5fa8e2cab0623c59102599a0f021d58857bfe83a78cfc52086e703e7a27be2ac"
 		repository: "43.204.35.30/creative-studio/creative-studio"
         digest: "sha256:5fa8e2cab0623c59102599a0f021d58857bfe83a78cfc52086e703e7a27be2ac"
 	}

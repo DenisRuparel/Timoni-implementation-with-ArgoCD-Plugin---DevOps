@@ -18,7 +18,7 @@ spec:
           value: beta
 
   destination:
-    server: https://192.168.56.107:6443
+    server: https://kubernetes.default.svc
     namespace: creative-studio-beta
 
   syncPolicy:

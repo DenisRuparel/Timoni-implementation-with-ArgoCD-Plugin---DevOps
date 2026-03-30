@@ -18,7 +18,7 @@ spec:
           value: stage
 
   destination:
-    server: https://35.200.235.204:6443
+    server: https://10.160.0.4:6443
     namespace: creative-studio-stage
 
   syncPolicy:

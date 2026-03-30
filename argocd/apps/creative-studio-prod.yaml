@@ -18,7 +18,7 @@ spec:
           value: prod
 
   destination:
-    server: https://kubernetes.default.svc
+    server: https://35.200.235.204:6443
     namespace: creative-studio-prod
 
   syncPolicy:

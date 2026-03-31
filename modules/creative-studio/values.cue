@@ -7,7 +7,7 @@ values: {
 		namespace: *"creative-studio-prod" | string
 	}
 	app: "creative-studio"
-	image: "13.61.15.73/creative-studio/creative-studio@sha256:10a4d90d047ac68a65d0c2a9b14413f3755a3722ada9bf9f87d24260d6e0fa50"
+	image:{
 		repository: "13.61.15.73/creative-studio/creative-studio"
         digest: "sha256:10a4d90d047ac68a65d0c2a9b14413f3755a3722ada9bf9f87d24260d6e0fa50"
 	}

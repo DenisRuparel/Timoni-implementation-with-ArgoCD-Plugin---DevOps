@@ -65,8 +65,8 @@ jobs:
           for FILE in "${FILES[@]}"; do
             echo "Updating $FILE"
       
-            sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE
-            sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
+            sed -i -E "s|^([[:space:]]*)repository:.*|\1repository: \"${TARGET_REPOSITORY}\"|" "$FILE"
+            sed -i -E "s|^([[:space:]]*)digest:.*|\1digest: \"${TARGET_DIGEST}\"|" "$FILE"
       
             echo "Updated content:"
             cat "$FILE"
@@ -141,8 +141,8 @@ jobs:
           for FILE in "${FILES[@]}"; do
             echo "Updating $FILE"
       
-            sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE
-            sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
+            sed -i -E "s|^([[:space:]]*)repository:.*|\1repository: \"${TARGET_REPOSITORY}\"|" "$FILE"
+            sed -i -E "s|^([[:space:]]*)digest:.*|\1digest: \"${TARGET_DIGEST}\"|" "$FILE"
       
             echo "Updated content:"
             cat "$FILE"

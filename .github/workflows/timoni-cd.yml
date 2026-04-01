@@ -9,6 +9,7 @@ permissions:
 
 env:
   IMAGE_DIGEST: ${{ github.event.client_payload.image_digest }}
+  REGISTRY: ${{ github.event.client_payload.registry }}
 
 jobs:
   deploy-beta:
@@ -25,49 +26,31 @@ jobs:
           git reset --hard origin/main
 
       - name: Update beta digest
-        # run: |
-        #   FILE="environments/beta/values.cue"
-        #   TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+        run: |
+          FILE="environments/beta/values.cue"
+          FILE_BETA="modules/creative-studio/beta/beta-values.cue"
+          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+          TARGET_REPOSITORY="${REGISTRY}/creative-studio/creative-studio"
 
-        #   CURRENT_DIGEST=$(awk '
-        #     /^[[:space:]]*digest:/ {
-        #       gsub(/"/, "", $2)
-        #       print $2
-        #       exit
-        #     }
-        #   ' "$FILE")
+          CURRENT_DIGEST=$(awk '
+            /^[[:space:]]*digest:/ {
+              gsub(/"/, "", $2)
+              print $2
+              exit
+            }
+          ' "$FILE")
 
-        #   echo "Current digest: $CURRENT_DIGEST"
-        #   echo "Target digest: $TARGET_DIGEST"
+          echo "Current digest: $CURRENT_DIGEST"
+          echo "Target digest: $TARGET_DIGEST"
 
-        #   if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
-        #     echo "No changes required"
-        #     exit 0
-        #   fi
+          if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
+            echo "No changes required"
+            exit 0
+          fi
 
-        #   sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
-        
-          run: |
-            FILE="modules/creative-studio/beta/beta-values.cue"
-            TARGET_DIGEST="${IMAGE_DIGEST#*@}"
-
-            CURRENT_DIGEST=$(awk '
-              /^[[:space:]]*digest:/ {
-                gsub(/"/, "", $2)
-                print $2
-                exit
-              }
-            ' "$FILE")
-  
-            echo "Current digest: $CURRENT_DIGEST"
-            echo "Target digest: $TARGET_DIGEST"
-  
-            if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
-              echo "No changes required"
-              exit 0
-            fi
-  
-            sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
+          sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE"
+          sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
+          sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE_BETA"
 
       - name: Commit and push beta
         run: |
@@ -99,31 +82,11 @@ jobs:
           git reset --hard origin/main
 
       - name: Update stage digest
-        # run: |
-        #   FILE="environments/stage/values.cue"
-        #   TARGET_DIGEST="${IMAGE_DIGEST#*@}"
-
-        #   CURRENT_DIGEST=$(awk '
-        #     /^[[:space:]]*digest:/ {
-        #       gsub(/"/, "", $2)
-        #       print $2
-        #       exit
-        #     }
-        #   ' "$FILE")
-
-        #   echo "Current digest: $CURRENT_DIGEST"
-        #   echo "Target digest: $TARGET_DIGEST"
-
-        #   if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
-        #     echo "No changes required"
-        #     exit 0
-        #   fi
-
-        #   sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
-
         run: |
-          FILE="modules/creative-studio/stage/stage-values.cue"
+          FILE="environments/stage/values.cue"
+          FILE_STAGE="modules/creative-studio/stage/stage-values.cue"
           TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+          TARGET_REPOSITORY="${REGISTRY}/creative-studio/creative-studio"
 
           CURRENT_DIGEST=$(awk '
             /^[[:space:]]*digest:/ {
@@ -141,7 +104,9 @@ jobs:
             exit 0
           fi
 
+          sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE"
           sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
+          sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE_STAGE"
 
       - name: Commit and push stage
         run: |
@@ -176,6 +141,7 @@ jobs:
         run: |
           FILE="modules/creative-studio/values.cue"
           TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+          TARGET_REPOSITORY="${REGISTRY}/creative-studio/creative-studio"
 
           CURRENT_DIGEST=$(awk '
             /^[[:space:]]*digest:/ {
@@ -193,6 +159,7 @@ jobs:
             exit 0
           fi
 
+          sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE"
           sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
 
       - name: Commit and push prod

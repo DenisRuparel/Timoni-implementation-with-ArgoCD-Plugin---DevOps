@@ -25,27 +25,49 @@ jobs:
           git reset --hard origin/main
 
       - name: Update beta digest
-        run: |
-          FILE="environments/beta/values.cue"
-          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+        # run: |
+        #   FILE="environments/beta/values.cue"
+        #   TARGET_DIGEST="${IMAGE_DIGEST#*@}"
 
-          CURRENT_DIGEST=$(awk '
-            /^[[:space:]]*digest:/ {
-              gsub(/"/, "", $2)
-              print $2
-              exit
-            }
-          ' "$FILE")
+        #   CURRENT_DIGEST=$(awk '
+        #     /^[[:space:]]*digest:/ {
+        #       gsub(/"/, "", $2)
+        #       print $2
+        #       exit
+        #     }
+        #   ' "$FILE")
 
-          echo "Current digest: $CURRENT_DIGEST"
-          echo "Target digest: $TARGET_DIGEST"
+        #   echo "Current digest: $CURRENT_DIGEST"
+        #   echo "Target digest: $TARGET_DIGEST"
 
-          if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
-            echo "No changes required"
-            exit 0
-          fi
+        #   if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
+        #     echo "No changes required"
+        #     exit 0
+        #   fi
 
-          sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
+        #   sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
+        
+          run: |
+            FILE="modules/creative-studio/beta/beta-values.cue"
+            TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+
+            CURRENT_DIGEST=$(awk '
+              /^[[:space:]]*digest:/ {
+                gsub(/"/, "", $2)
+                print $2
+                exit
+              }
+            ' "$FILE")
+  
+            echo "Current digest: $CURRENT_DIGEST"
+            echo "Target digest: $TARGET_DIGEST"
+  
+            if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
+              echo "No changes required"
+              exit 0
+            fi
+  
+            sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
 
       - name: Commit and push beta
         run: |
@@ -77,8 +99,30 @@ jobs:
           git reset --hard origin/main
 
       - name: Update stage digest
+        # run: |
+        #   FILE="environments/stage/values.cue"
+        #   TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+
+        #   CURRENT_DIGEST=$(awk '
+        #     /^[[:space:]]*digest:/ {
+        #       gsub(/"/, "", $2)
+        #       print $2
+        #       exit
+        #     }
+        #   ' "$FILE")
+
+        #   echo "Current digest: $CURRENT_DIGEST"
+        #   echo "Target digest: $TARGET_DIGEST"
+
+        #   if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
+        #     echo "No changes required"
+        #     exit 0
+        #   fi
+
+        #   sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
+
         run: |
-          FILE="environments/stage/values.cue"
+          FILE="modules/creative-studio/stage/stage-values.cue"
           TARGET_DIGEST="${IMAGE_DIGEST#*@}"
 
           CURRENT_DIGEST=$(awk '

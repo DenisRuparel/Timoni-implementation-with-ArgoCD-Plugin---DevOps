@@ -7,80 +7,58 @@ on:
 permissions:
   contents: write
 
+env:
+  IMAGE_DIGEST: ${{ github.event.client_payload.image_digest }}
+
 jobs:
-  # patch-argocd-repo-server:
-  #   runs-on: self-hosted
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - name: Install kubectl (if missing)
-  #       shell: bash
-  #       run: |
-  #         set -euo pipefail
-  #         if command -v kubectl >/dev/null 2>&1; then
-  #           kubectl version --client=true
-  #           exit 0
-  #         fi
-  #         curl -fsSL -o kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-  #         chmod +x kubectl
-  #         sudo mv kubectl /usr/local/bin/kubectl
-  #         kubectl version --client=true
-
-  #     - name: Configure kubeconfig
-  #       shell: bash
-  #       run: |
-  #         set -euo pipefail
-  #         mkdir -p "$HOME/.kube"
-  #         echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > "$HOME/.kube/config"
-  #         chmod 600 "$HOME/.kube/config"
-  #         kubectl get ns argocd >/dev/null
-
-  #     - name: Patch repo-server to include Timoni CMP sidecar
-  #       shell: bash
-  #       run: |
-  #         set -euo pipefail
-  #         kubectl patch deployment argocd-repo-server -n argocd \
-  #           --patch-file argocd/patches/argocd-repo-server-timoni-cmp.yaml
-
   deploy-beta:
     runs-on: self-hosted
     environment: beta
-    # needs: patch-argocd-repo-server
 
     steps:
       - uses: actions/checkout@v4
 
-      - run: echo "IMAGE_DIGEST=${{ github.event.client_payload.image_digest }}" >> $GITHUB_ENV
-
-      - run: |
+      - name: Checkout latest main
+        run: |
           git fetch origin main
           git checkout main
           git reset --hard origin/main
 
-      - id: check
+      - name: Update beta digest
         run: |
           FILE="environments/beta/values.cue"
-          CURRENT_IMAGE="$(awk '/^[[:space:]]*image:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
-          CURRENT_DIGEST="$(awk '/^[[:space:]]*digest:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
           TARGET_DIGEST="${IMAGE_DIGEST#*@}"
 
-          if [ "$CURRENT_IMAGE" = "$IMAGE_DIGEST" ] && [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
+          CURRENT_DIGEST=$(awk '
+            /^[[:space:]]*digest:/ {
+              gsub(/"/, "", $2)
+              print $2
+              exit
+            }
+          ' "$FILE")
+
+          echo "Current digest: $CURRENT_DIGEST"
+          echo "Target digest: $TARGET_DIGEST"
+
+          if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
+            echo "No changes required"
+            exit 0
           fi
 
-      - if: steps.check.outputs.skip == 'false'
-        run: |
-          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
-          sed -i 's|image:.*|image: "'"${IMAGE_DIGEST}"'"|' environments/beta/values.cue
-          sed -i 's|digest:.*|digest: "'"${TARGET_DIGEST}"'"|' environments/beta/values.cue
+          sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
 
-      - if: steps.check.outputs.skip == 'false'
+      - name: Commit and push beta
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
           git add environments/beta/values.cue
+
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+
           git commit -m "chore(beta): promote image ${IMAGE_DIGEST}"
           git push origin main
 
@@ -92,37 +70,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: echo "IMAGE_DIGEST=${{ github.event.client_payload.image_digest }}" >> $GITHUB_ENV
-
-      - run: |
+      - name: Checkout latest main
+        run: |
           git fetch origin main
           git checkout main
           git reset --hard origin/main
 
-      - id: check
+      - name: Update stage digest
         run: |
           FILE="environments/stage/values.cue"
-          CURRENT_IMAGE="$(awk '/^[[:space:]]*image:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
-          CURRENT_DIGEST="$(awk '/^[[:space:]]*digest:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
           TARGET_DIGEST="${IMAGE_DIGEST#*@}"
 
-          if [ "$CURRENT_IMAGE" = "$IMAGE_DIGEST" ] && [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
+          CURRENT_DIGEST=$(awk '
+            /^[[:space:]]*digest:/ {
+              gsub(/"/, "", $2)
+              print $2
+              exit
+            }
+          ' "$FILE")
+
+          echo "Current digest: $CURRENT_DIGEST"
+          echo "Target digest: $TARGET_DIGEST"
+
+          if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
+            echo "No changes required"
+            exit 0
           fi
 
-      - if: steps.check.outputs.skip == 'false'
-        run: |
-          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
-          sed -i 's|image:.*|image: "'"${IMAGE_DIGEST}"'"|' environments/stage/values.cue
-          sed -i 's|digest:.*|digest: "'"${TARGET_DIGEST}"'"|' environments/stage/values.cue
+          sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
 
-      - if: steps.check.outputs.skip == 'false'
+      - name: Commit and push stage
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
           git add environments/stage/values.cue
+
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+
           git commit -m "chore(stage): promote image ${IMAGE_DIGEST}"
           git push origin main
 
@@ -134,36 +122,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: echo "IMAGE_DIGEST=${{ github.event.client_payload.image_digest }}" >> $GITHUB_ENV
-
-      - run: |
+      - name: Checkout latest main
+        run: |
           git fetch origin main
           git checkout main
           git reset --hard origin/main
 
-      - id: check
+      - name: Update prod digest
         run: |
           FILE="modules/creative-studio/values.cue"
-          CURRENT_IMAGE="$(awk '/^[[:space:]]*image:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
-          CURRENT_DIGEST="$(awk '/^[[:space:]]*digest:/{gsub(/"/,"",$2); print $2; exit}' "$FILE")"
           TARGET_DIGEST="${IMAGE_DIGEST#*@}"
 
-          if [ "$CURRENT_IMAGE" = "$IMAGE_DIGEST" ] && [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
+          CURRENT_DIGEST=$(awk '
+            /^[[:space:]]*digest:/ {
+              gsub(/"/, "", $2)
+              print $2
+              exit
+            }
+          ' "$FILE")
+
+          echo "Current digest: $CURRENT_DIGEST"
+          echo "Target digest: $TARGET_DIGEST"
+
+          if [ "$CURRENT_DIGEST" = "$TARGET_DIGEST" ]; then
+            echo "No changes required"
+            exit 0
           fi
 
-      - if: steps.check.outputs.skip == 'false'
-        run: |
-          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
-          sed -i 's|image:.*|image: "'"${IMAGE_DIGEST}"'"|' modules/creative-studio/values.cue
-          sed -i 's|digest:.*|digest: "'"${TARGET_DIGEST}"'"|' modules/creative-studio/values.cue
+          sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
 
-      - if: steps.check.outputs.skip == 'false'
+      - name: Commit and push prod
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
           git add modules/creative-studio/values.cue
+
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+
           git commit -m "chore(prod): promote image ${IMAGE_DIGEST}"
           git push origin main

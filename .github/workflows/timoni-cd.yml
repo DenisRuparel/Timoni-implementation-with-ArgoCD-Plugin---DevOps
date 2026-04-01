@@ -49,6 +49,7 @@ jobs:
           fi
 
           sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE"
+          sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE_BETA"
           sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
           sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE_BETA"
 
@@ -105,6 +106,7 @@ jobs:
           fi
 
           sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE"
+          sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE_STAGE"
           sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
           sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE_STAGE"
 

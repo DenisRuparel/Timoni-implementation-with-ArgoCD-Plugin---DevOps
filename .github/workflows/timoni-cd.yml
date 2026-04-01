@@ -54,13 +54,13 @@ jobs:
         #   sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE_BETA"
         
         run: |
+          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+          TARGET_REPOSITORY="${REGISTRY}/creative-studio/creative-studio"
+      
           FILES=(
             "environments/beta/values.cue"
             "modules/creative-studio/beta/beta-values.cue"
           )
-      
-          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
-          TARGET_REPOSITORY="${REGISTRY}/creative-studio/creative-studio"
       
           for FILE in "${FILES[@]}"; do
             echo "Updating $FILE"
@@ -68,7 +68,7 @@ jobs:
             sed -i -E "s|^([[:space:]]*)repository:.*|\1repository: \"${TARGET_REPOSITORY}\"|" "$FILE"
             sed -i -E "s|^([[:space:]]*)digest:.*|\1digest: \"${TARGET_DIGEST}\"|" "$FILE"
       
-            echo "Updated content:"
+            echo "Updated file:"
             cat "$FILE"
           done
 
@@ -77,7 +77,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          git add environments/beta/values.cue
+          git add environments/beta/values.cue modules/creative-studio/beta/beta-values.cue
 
           if git diff --cached --quiet; then
             echo "Nothing to commit"
@@ -128,15 +128,14 @@ jobs:
         #   sed -i "s|^[[:space:]]*repository:.*|        repository: \"${TARGET_REPOSITORY}\"|" "$FILE_STAGE"
         #   sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE"
         #   sed -i "s|^[[:space:]]*digest:.*|        digest: \"${TARGET_DIGEST}\"|" "$FILE_STAGE"
-
         run: |
+          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
+          TARGET_REPOSITORY="${REGISTRY}/creative-studio/creative-studio"
+      
           FILES=(
             "environments/stage/values.cue"
             "modules/creative-studio/stage/stage-values.cue"
           )
-      
-          TARGET_DIGEST="${IMAGE_DIGEST#*@}"
-          TARGET_REPOSITORY="${REGISTRY}/creative-studio/creative-studio"
       
           for FILE in "${FILES[@]}"; do
             echo "Updating $FILE"
@@ -144,7 +143,7 @@ jobs:
             sed -i -E "s|^([[:space:]]*)repository:.*|\1repository: \"${TARGET_REPOSITORY}\"|" "$FILE"
             sed -i -E "s|^([[:space:]]*)digest:.*|\1digest: \"${TARGET_DIGEST}\"|" "$FILE"
       
-            echo "Updated content:"
+            echo "Updated file:"
             cat "$FILE"
           done
 
@@ -153,7 +152,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          git add environments/stage/values.cue
+          git add environments/stage/values.cue modules/creative-studio/stage/stage-values.cue
 
           if git diff --cached --quiet; then
             echo "Nothing to commit"

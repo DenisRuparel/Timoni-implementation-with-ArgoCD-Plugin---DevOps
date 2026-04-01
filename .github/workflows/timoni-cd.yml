@@ -84,7 +84,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore(beta): promote image ${IMAGE_DIGEST}"
+          git commit -m "chore(beta): promote image ${IMAGE_DIGEST} and ${REGISTRY}"
           git push origin main
 
   deploy-stage:
@@ -159,7 +159,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore(stage): promote image ${IMAGE_DIGEST}"
+          git commit -m "chore(stage): promote image ${IMAGE_DIGEST} and ${REGISTRY}"
           git push origin main
 
   deploy-prod:
@@ -213,5 +213,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore(prod): promote image ${IMAGE_DIGEST}"
+          git commit -m "chore(prod): promote image ${IMAGE_DIGEST} and ${REGISTRY}"
           git push origin main
